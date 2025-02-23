@@ -15,7 +15,6 @@ void loop()
   if(Serial.available() > 0)
   {
     char command = Serial.read();
-    
     switch(command)
     {
       case 'S': //backward
