@@ -1,0 +1,66 @@
+#define m1_A 4
+#define m1_B 5
+#define m2_A 6
+#define m2_B 7
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(m1_A,OUTPUT);
+  pinMode(m1_B,OUTPUT);
+  pinMode(m2_A,OUTPUT);
+  pinMode(m2_B,OUTPUT);
+}
+void loop()
+{
+  if(Serial.available() > 0)
+  {
+    char command = Serial.read();
+    
+    switch(command)
+    {
+      case 'S': //backward
+      digitalWrite(m1_A,HIGH);
+      digitalWrite(m1_B,LOW);
+      digitalWrite(m2_A,HIGH);
+      digitalWrite(m2_B,LOW);
+      Serial.println("Moving Forward");
+      break;
+
+      case 'W': //forward
+      digitalWrite(m1_A,LOW);
+      digitalWrite(m1_B,HIGH);
+      digitalWrite(m2_A,LOW);
+      digitalWrite(m2_B,HIGH);
+      Serial.println("Moving Backward");
+      break;
+
+      case 'A': //left
+      digitalWrite(m1_A,HIGH);
+      digitalWrite(m1_B,LOW);
+      digitalWrite(m2_A,LOW);
+      digitalWrite(m2_B,HIGH);
+      Serial.println("Moving Right");
+      break;
+
+      case 'D': //right
+      digitalWrite(m1_A,LOW);
+      digitalWrite(m1_B,HIGH);
+      digitalWrite(m2_A,HIGH);
+      digitalWrite(m2_B,LOW);
+      Serial.println("Moving Left");
+      break;
+
+      case 'X': //stop
+      digitalWrite(m1_A,LOW);
+      digitalWrite(m1_B,LOW);
+      digitalWrite(m2_A,LOW);
+      digitalWrite(m2_B,LOW);
+      Serial.println("Stopping");
+      break;
+
+      default:
+      Serial.println("Invalid command");
+      break;
+    }
+  }
+}
