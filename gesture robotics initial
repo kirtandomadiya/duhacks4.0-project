@@ -1,0 +1,72 @@
+#define m1_A 4
+#define m1_B 5
+#define m2_A 6
+#define m2_B 7
+
+const int xPin = A1; // x-axis pin
+const int yPin = A2; // y-axis pin
+const int zPin = A3; // z-axis pin
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(m1_A, OUTPUT);
+  pinMode(m1_B, OUTPUT);
+  pinMode(m2_A, OUTPUT);
+  pinMode(m2_B, OUTPUT);
+}
+
+void loop() {
+  int x = analogRead(xPin);
+  int y = analogRead(yPin);
+  int z = analogRead(zPin);
+
+  Serial.print("X: ");
+  Serial.print(x);
+  Serial.print(" | Y: ");
+  Serial.print(y);
+  Serial.print(" | Z: ");
+  Serial.println(z);
+
+  if (x > 344 && x < 354 && y > 323 && y < 404 && z > 320 && z < 418) {
+    // Move Backward
+    digitalWrite(m1_A, HIGH);
+    digitalWrite(m1_B, LOW);
+    digitalWrite(m2_A, HIGH);
+    digitalWrite(m2_B, LOW);
+    Serial.println("Moving Backward");
+  } 
+  else if (x > 344 && x < 349 && y > 271 && y < 323 && z > 334 && z < 418) {
+    // Move Forward
+    digitalWrite(m1_A, LOW);
+    digitalWrite(m1_B, HIGH);
+    digitalWrite(m2_A, LOW);
+    digitalWrite(m2_B, HIGH);
+    Serial.println("Moving Forward");
+  } 
+  else if (x > 332 && x < 344 && y > 323 && y < 407 && z > 350 && z < 418) {
+    // Move Right
+    digitalWrite(m1_A, HIGH);
+    digitalWrite(m1_B, LOW);
+    digitalWrite(m2_A, LOW);
+    digitalWrite(m2_B, HIGH);
+    Serial.println("Moving Right");
+  } 
+  else if (x > 331 && x < 344 && y > 277 && y < 323 && z > 322 && z < 418) {
+    // Move Left
+    digitalWrite(m1_A, LOW);
+    digitalWrite(m1_B, HIGH);
+    digitalWrite(m2_A, HIGH);
+    digitalWrite(m2_B, LOW);
+    Serial.println("Moving Left");
+  } 
+  else {
+    // Stop the motors when no condition matches
+    digitalWrite(m1_A, HIGH);
+    digitalWrite(m1_B, LOW);
+    digitalWrite(m2_A, HIGH);
+    digitalWrite(m2_B, LOW);
+    Serial.println("Stopping");
+  }
+
+  delay(3000); // Small delay for stability
+}
