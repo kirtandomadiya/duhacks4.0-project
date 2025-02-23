@@ -1,0 +1,148 @@
+#include <Wire.h>
+#include <MPU6050.h>
+
+MPU6050 mpu;
+
+// Motor Pins
+#define motor1A 6
+#define motor1B 7
+#define motor2A 8
+#define motor2B 9
+
+// Ultrasonic Sensor Pins
+#define trigPin 4
+#define echoPin 5
+
+float baseX, baseY; // Reference position for motion detection
+
+void setup() {
+    Serial.begin(9600);
+    Wire.begin();
+    mpu.initialize();
+
+    if (!mpu.testConnection()) {
+        Serial.println("MPU6050 connection failed!");
+        while (1);
+    }
+    
+    pinMode(motor1A, OUTPUT);
+    pinMode(motor1B, OUTPUT);
+    pinMode(motor2A, OUTPUT);
+    pinMode(motor2B, OUTPUT);
+    
+    pinMode(trigPin, OUTPUT);
+    pinMode(echoPin, INPUT);
+
+    delay(2000); // Wait for MPU6050 to stabilize
+    recordReference(); // Record center position
+
+    Serial.println("Gyroscope + Ultrasonic Control Ready...");
+}
+
+// Function to record initial reference (neutral) position
+void recordReference() {
+    int16_t ax, ay, az, gx, gy, gz;
+    mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    
+    baseX = gx / 131.0;  // Convert gyro raw data to degrees/sec
+    baseY = gy / 131.0;
+    
+    Serial.print("Reference X: ");
+    Serial.print(baseX);
+    Serial.print(" Y: ");
+    Serial.println(baseY);
+}
+
+// Function to read gyroscope values
+void readGyro(float &x, float &y) {
+    int16_t ax, ay, az, gx, gy, gz;
+    mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+
+    x = gx / 131.0;  // Convert raw data to degrees/sec
+    y = gy / 131.0;
+}
+
+// Function to get distance from ultrasonic sensor
+long getDistance() {
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+    
+    return pulseIn(echoPin, HIGH) * 0.034 / 2; // Convert to cm
+}
+
+// Motor Control Functions
+void moveForward() {
+    digitalWrite(motor1A, HIGH);
+    digitalWrite(motor1B, LOW);
+    digitalWrite(motor2A, HIGH);
+    digitalWrite(motor2B, LOW);
+}
+
+void moveBackward() {
+    digitalWrite(motor1A, LOW);
+    digitalWrite(motor1B, HIGH);
+    digitalWrite(motor2A, LOW);
+    digitalWrite(motor2B, HIGH);
+}
+
+void turnLeft() {
+    digitalWrite(motor1A, LOW);
+    digitalWrite(motor1B, HIGH);
+    digitalWrite(motor2A, HIGH);
+    digitalWrite(motor2B, LOW);
+}
+
+void turnRight() {
+    digitalWrite(motor1A, HIGH);
+    digitalWrite(motor1B, LOW);
+    digitalWrite(motor2A, LOW);
+    digitalWrite(motor2B, HIGH);
+}
+
+void stopCar() {
+    digitalWrite(motor1A, LOW);
+    digitalWrite(motor1B, LOW);
+    digitalWrite(motor2A, LOW);
+    digitalWrite(motor2B, LOW);
+}
+
+void loop() {
+    float gyroX, gyroY;
+    readGyro(gyroX, gyroY);
+    long distance = getDistance();
+
+    Serial.print("DeltaX: ");
+    Serial.print(gyroX - baseX);
+    Serial.print(" DeltaY: ");
+    Serial.print(gyroY - baseY);
+    Serial.print(" Distance: ");
+    Serial.println(distance);
+
+    // Emergency Stop if obstacle is <= 5cm
+    if (distance <= 5) {
+        stopCar();
+        Serial.println("Emergency Stop! Obstacle detected.");
+        return;
+    }
+
+    float deltaX = gyroX - baseX;
+    float deltaY = gyroY - baseY;
+
+    // Gyroscope threshold to detect movement
+    if (deltaX > 5) {  // Tilt forward
+        moveForward();
+    } else if (deltaX < -5) {  // Tilt backward
+        moveBackward();
+    } else if (deltaY > 5) {  // Tilt right
+        turnRight();
+    } else if (deltaY < -5) {  // Tilt left
+        turnLeft();
+    } else {
+        stopCar();
+    }
+
+    delay(100); // Small delay for smooth motion
+}
